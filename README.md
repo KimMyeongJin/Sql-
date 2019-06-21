@@ -126,3 +126,4 @@ select ename,job,deptno
 from emp
 where deptno in (20,30)
 order by ename;
+-----------------------
