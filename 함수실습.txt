@@ -1,0 +1,100 @@
+select * from member;
+select * from dual;
+-- 1)문자함수
+-- chr(아스키코드) : 해당 아스키 코드값에 대한 문자 반환
+select chr(65) from dual;
+-- ascii(문자) : 문자의 아스키코드값을 반환함
+select ascii('A') from dual;
+-- ** dual : 오라클에서 제공하는 가상의 테이블
+
+-- concat(컬럼명, '문자열') : 컬럼에 해당하는 문자열을 붙임
+-- concat('문자열1','문자열2') : 문자열1과 문자열2를 붙여서 결과값을 반환함
+select concat (ename, '의 직책은'), job from emp;
+-- A || B => A와 B를 연결시킴(결합연산자)
+select ename || '의 직책은' || job from emp;
+select concat('로미오와','줄리엣') from dual;
+
+-- initcap('문자열') : 각 단어의 시작 문자를 대문자로, 다른 문자는 소문자로 반환함
+select initcap('hello jAVA') from dual;
+select initcap('abalfaoicFlaafiaf') from dual;
+
+-- sysdate : 시스템의 현재 날짜/시간을 리턴하는 함수
+select sysdate from dual;
+select sysdate + 100 from dual;
+select sysdate - 100 from dual;
+-- **의사컬럼(모조컬럼) : 테이블에 있는 일반적인 컬럼처럼 행동하기는 하지만 실제로 테이블에 저장되어 있지 않은 컬럼.
+-- 1) rownum : 쿼리의 결과로 나오게 되는 각각의 row들에 대한 순서값을 가리키는 의사컬럼
+-- 2) rowid : 테이블에 저장된 각각의 row들에 대한 주소값을 가진 의사컬럼. 각각의 row들은 자신만의 rowid를 가짐
+-- rownum : 행(레코드) 번호
+-- rowid : 행(레코드)의 주소값
+select rownum, rowid, empno, ename from emp;
+ 
+-- add_months(날짜컬럼 or 날짜데이터, 숫자) : 날짜값에 개월 수를 더해서 결과값을 반환함
+select add_months (sysdate,3) from dual;
+  
+-- 두 날짜 사이의 개월수 계산 함수
+select months_between('2019/04/30','2019/04/15') from dual;
+
+-- 날짜 수 계산
+-- to_date('날짜문자열') 문자열을 날짜형으로 변환
+select to_date('2019/05/20') - to_date('2019/04/15') from dual;
+-- to_char(날짜,'출력형식') 날짜를 스트링형식으로 변환
+select sysdate,to_char(sysdate, 'yyyy-mm-dd am hh:mi:ss day')as 현재년월일시각 from dual;
+
+-- 숫자 변환 함수 to_number
+select 100-10,100+10,100*10,100/10 from dual;
+select '100'+1 from dual;
+select to_number ('100')+1 from dual;
+
+-- 평균 급여
+-- avg(필드) 필드값의 평균
+select ename,sal from emp;
+select avg(sal) from emp;
+select round(avg(sal),2) from emp; --소수 둘째자리에서 반올림
+select ceil(avg(sal)) from emp; -- 올림
+select trunc(avg(sal),1) from emp; -- 소수 첫째자리에서 절사
+
+select sum(sal),max(sal),min(sal),count(sal) from emp;
+
+-- (문제) 각 직원들에 대해서 직원의 이름과 근속연수를 나타내시오. 단, 근속연수는 연단위를 버림하여 나타내시오.
+select ename,trunc(sysdate-hiredate) as 근무일수, trunc((sysdate-hiredate)/365)as 근속연수 from emp;
+
+-- 일반함수 : NVL(컬럼, 치환할 값) : 컬럼의 값이 null이면 다른값으로 치환함
+
+-- (문제) 101번 학과 교수들의 이름과 급여, bonus, 연봉을 출력하시오.
+select * from professor;
+-- nvl(A,B) A의 값이 null이면 B로 치환, null이 아니면 A를 그대로 사용
+select name, pay, bonus, (pay*12 + nvl(bonus,0)) "연봉"
+from professor 
+where deptno = 101;
+
+-- decode (A,B,A와B가 같을 때의 값, A와B가 같지 않을 때의 값)
+-- (문제) 학과코드가 101인 교수만 컴퓨터공학과로 출력하시오(101번이 아닌 교수들은 학과명에 아무 것도 출력하지 않음)
+select name, deptno, decode(deptno, 101, '컴퓨터공학과','기타학과') "학과명" 
+from professor;
+--null값에 추가적으로 적을수 있다
+select name,deptno
+,decode(deptno,101,'컴퓨터공학과'
+              ,102,'멀티미디어공학과'
+              ,103,'소프트웨어공학과')
+from professor;              
+
+-- 실습문제 
+-- 1) 각 직원의 이름, 직급, 급여를 나타내되 단 급여는 5자리로 나타내며 부족한 자리수는 '*'로 표시한다. 
+--    월급이 300 이상인 직원만 나타내시오.
+    select ename,job,lpad(sal,5,'*') from emp where sal >=300;
+-- 2) 각 직원들에 대해서 직원의 이름과 근무개월수를 나타내되 근무개월수가 100개월 이상인 직원만 나타내시오. 
+--    근무개월수는 소수 부분을 제외한 정수 부분만 나타내시오.
+    select ename, trunc(months_between(sysdate,hiredate)) 근무개월수 
+    from emp -- 1. 테이블 선택
+    where trunc(months_between(sysdate,hiredate))>=100; --2. 행선택
+-- 3) 전체 직원에 대하여 직원의 이름과 직급, 총 근무 주(week)수를 구하시오. (단, 근무주수가 많은 직원
+--    부터 나타내고, 근무주수가 같으면 이름에 대하여 오름차순 정렬하시오.)
+    select ename,job,trunc((sysdate-hiredate)/7) 근무주수 -- 2.필드선택
+    from emp -- 1. 테이블 선택 
+    order by 근무주수 desc,ename; -- 3. 정렬
+-- 4) Student 테이블에서 제1전공(deptno1)이 101인 학과 학생들의 이름과 주민등록번호, 성별을 출력하되
+--    성별은 주민등록번호 컬럼을 이용하여 7번째 숫자가 1일 경우 '남자', 2일 경우 '여자'로 출력하시오.
+    select name,jumin,decode(substr(jumin,7,1),1,'남자','여자')
+    from student
+    where deptno1 = 101;
