@@ -1,0 +1,75 @@
+create table dep(
+ id varchar2(10) primary key,
+ name varchar2(15) not null,
+ location varchar2(20)
+ );
+
+drop table dep;
+select * from dep;
+
+insert into dep values('10','영업부','서울 강남구');
+savepoint a;
+insert into dep values('20','회계부','부산 동래구');
+savepoint b;
+insert into dep values('30','개발부','인천 계양구');
+rollback to a;
+select * from dep;
+commit;
+
+
+-- 부서코드별로 직원수, 급여합계, 급여평균, 최고급여, 최저급여 출력
+-- select절에는 요약기준필드와 집계함수만 사용 가능
+select e.deptno, count(*),sum(sal),round(avg(sal)),max(sal),min(sal) 
+from emp e, dept d
+where e.deptno=d.deptno
+group by e.deptno, dname -- 요약 기준 필드
+order by e.deptno;
+-- 학과별 인원수, 급여합계, 급여평균, 최고급여, 최저급여
+select deptno,count(*),sum(pay) ,round(avg(pay)),max(pay),min(pay)
+from professor
+group by deptno -- 집계기준 필드
+order by deptno;
+
+select dname, avg(pay)
+from professor p,department d
+where p.deptno = d.deptno
+group by dname
+having avg(pay) >= 450;
+
+-- 1. 부서코드, 부서이름, 직원수, 급여합계액, 평균급여액, 최대급여액,
+-- 최소급여액을 출력하시오.
+select e.deptno, dname, count(*),sum(sal),round(avg(sal)),max(sal),min(sal)
+from emp e, dept d -- 조인할 테이블
+where e.deptno = d.deptno -- 조인 조건
+group by e.deptno, dname;
+
+-- 2. 학과코드, 학과이름, 학생수를 출력하시오.
+select s.deptno1,dname,count(*)
+from student s, department d
+where s.deptno1 = d.deptno
+group by s.deptno1,dname;
+
+-- 3.지도교수사번, 지도교수이름, 지도학생수를 출력하시오.
+select s.profno, p.name, count(*)
+from student s, professor p
+where s.profno = p.profno
+group by s.profno,p.name
+order by p.name;
+-- 4. 교수 중에서 급여총액(급여+보너스)이 가장 높은 교수와 가장 낮은 교수,
+-- 급여총액의 평균금액을 출력하시오.
+select deptno, max(pay+nvl(bonus,0)), min (pay+nvl(bonus,0)),
+    round(avg(pay+nvl(bonus,0)),1)
+from professor
+group by deptno;
+
+-- 5. student 테이블의 birthday 컬럼을 사용하여 월별로 태어난 인원수를 출력하시오,
+-- 이렇게 하면 없는 달은 나오지 않음
+select * from student;
+desc student;
+
+select to_char(birthday,'mm')||'월',count(*)
+from student
+group by to_char(birthday,'mm')
+order by to_char(birthday,'mm');
+
+commit;
