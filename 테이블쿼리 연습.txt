@@ -1,0 +1,193 @@
+-- create table 테이블 ( 필드명 자료형 );
+-- char 고정사이즈, varchar2 가변사이즈
+create table t_emp(
+id number(5) not null,
+name varchar(25),
+salary number(7,2),
+phone varchar2(15),
+dept_name varchar2(25)
+);
+
+select * from tab;
+
+desc t_emp;
+
+-- 테이블 이름 변경 rename 변경전이름 to 변경후이름;
+rename t_emp to s_emp;
+
+desc s_emp;
+-- 테이블 데이터 입력 insert into 테이블이름 values(테이블컬럼내용);
+insert into s_emp values(100,'이상헌',2000,'010-222-2222','개발부','2019-03-02');
+insert into s_emp values(100,'이상헌',3000,'010-333-3333','총무부','2019-02-12');
+insert into s_emp values(104,'김민숙',4000,'232323010-444-4444','영업부','2019-05-22');
+
+select * from s_emp;
+-- 테이블에 컬럼 추가
+alter table s_emp add (hire_date date);
+desc s_emp;
+
+-- 테이블에 컬럼 수정
+alter table s_emp modify (phone varchar2(20));
+
+-- 컬럼의 이름 수정
+alter table s_emp rename column id to t_id;
+select * from s_emp;
+
+
+--컬럼의 삭제 : dept_name 삭제
+alter table s_emp drop column dept_name;
+
+-- 테이블의 데이터 조작 : insert, update, delete
+-- 가) 기존의 row 에 있는 hire_date에 값 입력하기
+update s_emp
+    set hire_date = sysdate where t_id = 100;
+    
+update s_emp
+    set hire_date='2019-01-01',name='최순혁'  where t_id = 103;
+
+update s_emp
+    set hire_date = sysdate where t_id = 300;
+    
+SELECT * FROM  s_emp;
+
+-- 나) 새로운 데이터를 새로운 row에 입력하기
+insert into s_emp (t_id,hire_date) values(400,sysdate);
+-- 다) 테이블의 row 삭제하기 : delete
+delete from s_emp where t_id = 400;
+
+alter table s_emp add mailid varchar2(10);
+desc s_emp;
+alter table s_emp modify mailid varchar2(20);
+alter table s_emp rename column mailid to e_mail;
+rename s_emp to t_emp;
+
+
+-- 나. 제약조건(constraint)
+
+-- 정의
+-- 테이블의 해당 컬럼에 원치않는 데이터가 입력/변경/삭제되는 것을 방지하기 위해
+-- 테이블 생성시 또는 변경시 설정하는 조건
+
+-- 2) 종류 primary key, foreign key, unipue, check, not null
+
+-- 3) 제약조건을 반영한 테이블 생성하기
+
+    create table c_emp (
+    id number(5) constraint c_emp_id_pk primary key,
+    name varchar2(25) constraint c_emp_name_nn not null,
+    salary number(7,2),
+    phone varchar2(15) constraint c_emp_phone_ck
+        check(phone like '3429-%'),
+    dept_id number(7) constraint c_emp_dept_id_fk
+        references dept(deptno)
+    );
+-- 제약조건 목록 확인 (데이터사전)
+select * from user_constraints where table_name='c_emp';
+
+-- 제약조건은 수정할 수 없고 삭제만 가능함
+alter table c_emp drop constraint c_emp_name_nn;
+
+drop table c_emp;
+
+create table c_emp(
+id number(5), --사번(중복되면 안되는 값)
+name varchar2(25),
+salary number(7,2),
+phone varchar2(15),
+dept_id number(7)
+);
+
+insert into c_emp (id,name) values (1,'김철수');
+insert into c_emp (id,name) values (2,'김기철');
+insert into c_emp (id,name) values (3,'김철민');
+insert into c_emp (id,name) values (1,'김철수');
+select * from c_emp;
+
+-- 모든 레코드 삭제
+delete from c_emp;
+
+-- 제약조건 추가
+-- alter table 테이블이름 add constraint 제약조건이름 제약조건종류 (필드명)
+alter table c_emp add constraint c_emp_id_pk primary key(id);
+
+insert into c_emp (id,name) values (1,'김철수');
+insert into c_emp (id,name) values (1,'김기철');
+insert into c_emp (id,name) values (1,'김철민');
+insert into c_emp (id,name) values (1,'김철수');
+
+-- 2. check 제약조건
+-- 테이블 제거
+drop table c_emp;
+-- salary 필드에 제약조건 추가
+create table c_emp(
+id number(5), 
+name varchar2(25),
+salary number(7,2) constraint c_emp_salary_ck 
+    check(salary between 100 and 1000) ,
+phone varchar2(15),
+dept_id number(7)
+);
+insert into c_emp (id,name,salary) values (1,'kim',100);
+insert into c_emp (id,name,salary) values (2,'park',1000);
+insert into c_emp (id,name,salary) values (3,'hong',10000);
+insert into c_emp (id,name,salary) values (4,'lee',-100);
+
+-- 3. Foreign key 제약조건
+-- 외래키, 외부키
+-- 다른 테이블의 PK를 참조
+select * from emp;
+
+select * from user_constraints where table_name = 'EMP';
+
+select * from user_constraints where table_name = 'DEPT';
+
+select * from dept;
+
+insert into emp (empno, ename, deptno) values (1000,'kim',30);
+insert into emp (empno, ename, deptno) values (1001,'park',50);
+-- ORA-02291: integrity constraint (JAVA.FK_DEPTNO) violated - parent key not found
+-- parent key not found
+
+-- 테이블 제거
+drop table c_emp;
+
+-- 제약조건 이름 추가
+-- constraint 제약조건이름 references 참조할테이블(PK컬럼)
+create table c_emp(
+id number(5), 
+name varchar2(25),
+salary number(7,2),
+phone varchar2(15),
+dept_id number(7) constraint c_emp_deptid_fk references
+dept(deptno)
+);
+
+insert into c_emp (id,dept_id) values (20,40);
+insert into c_emp (id,dept_id) values (30,50);
+
+
+-- 4. unique 제약조건
+-- primary key: unique(중복안됨) + not null (필수입력)
+-- 테이블 제거
+drop table c_emp;
+-- 제약조건 이름 추가
+-- constraint 제약조건이름 unique
+create table c_emp(
+id number(5), 
+name varchar2(25)  constraint c_emp_name_un unique,
+salary number(7,2),
+phone varchar2(15),
+dept_id number(7)
+);
+
+insert into c_emp (id,name) values(1,'lee');
+--무결성 제약 조건 (JAVA.C_EMP_NAME_UN)에 위배됩니다.
+-- "unique constraint (%s%s) violated"
+insert into c_emp (id,name) values(2,'kim');
+
+select * from user_constraints where table_name='C_EMP';
+
+
+insert into c_emp (name) values ('김철수');
+insert into c_emp (name) values ('김철수');
+-- ORA-00001: unique constraint (JAVA.C_EMP_NAME_UN) violated
