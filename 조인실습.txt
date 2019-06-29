@@ -1,0 +1,160 @@
+﻿select empno,ename,deptno from emp;
+-- 부서 테이블
+select * from dept;
+
+-- Oracle SQL 방식
+select empno, ename, dname
+from emp e, dept d
+where e.deptno = d.deptno;
+-- ANSI SQL (표준 SQL) 방식
+select empno, ename, dname
+from emp e join dept d
+    on e.deptno=d.deptno;
+ 
+ -- 이름, 학과코드, 학과명   
+ select name,deptno1 from student;   
+ 
+ -- 학과테이블
+ select deptno, dname from department;
+ -- 테이블 ,필드
+ select name,deptno1,dname  -- 출력할 필드들
+ from student s, department d   -- 조인대상 테이블들
+ where s.deptno1 = d.deptno;   -- 조인조건
+ 
+ select name,deptno1,dname -- 출력할 필드들
+ from student s join department d -- A join B on 조건
+ on s.deptno1=d.deptno; -- 조인조건
+ 
+ create table product(
+ product_code varchar2(20) not null primary key,
+ product_name varchar2(50) not null,
+ price number default 0,
+ company varchar2(50),
+ make_date date default sysdate
+ );
+ 
+insert into product values ('A1', '아이폰', 900000, '애플', '2017-03-01' );
+insert into product values ('A2', '갤럭시노트', 1000000, '삼성', '2017-08-01' );
+insert into product values ('A3', '갤럭시탭', 1200000, '삼성', '2017-10-01' );
+
+select * from product;
+commit;
+
+create table product_sales(
+product_code varchar2(20) not null,
+amount number default 0
+);
+
+insert into product_sales values ('A1',100);
+insert into product_sales values ('A2',200);
+insert into product_sales values ('A3',300);
+
+select * from product_sales;
+
+select p.product_code, product_name, company, price,
+    amount, price*amount money, make_date
+from product p, product_sales s
+where p.product_code = s.product_code;
+
+create table subject(
+subject_code number not null primary key,
+subject_name varchar2(50) not null,
+profno number not null,
+point number default 3
+);
+
+insert into subject values (1,'java',1001,3);
+insert into subject values (2,'db',1002,4);
+insert into subject values (3,'jsp',1003,2);
+
+select * from subject;
+
+-- 수강테이블
+-- 학번,과목코드,등급
+-- 2개 이상의 필드를 조합하여 복합키를 만들 수 있음 primary key(필드1,필드2)
+drop table lecture;
+
+create table lecture (
+studno number not null,     -- 학번
+subject_code number not null,   -- 과목코드
+grade varchar2(2),  -- 등급
+primary key (studno, subject_code)  -- 복합키
+);
+insert into lecture values(9411,1,'A0');
+insert into lecture values(9411,2,'A+');
+insert into lecture values(9412,3,'C0');
+select * from lecture;
+
+-- 학번,이름,과목명,담당교수,학점,성적
+select l.studno, st.name sname, subject_name,p.name pname,point, l.grade
+from lecture l, student st, subject sb, professor p
+where l.studno = st.studno and l.subject_code=sb.subject_code
+    and sb.profno=p.profno;
+    
+commit;
+
+-- 사원번호, 사원이름, 부서번호, 부서이름
+-- 내부 조인 
+select empno, ename, e.deptno, dname
+from emp e, dept d
+where e.deptno = d.deptno;
+
+select*from emp;
+select*from emp where empno=7698;
+
+-- self 조인
+select 
+    a.empno,a.ename 사원이름, a.job 사원직급
+    ,b.ename 관리자이름,b.job 관리자직급
+from emp a, emp b
+where a.mgr = b.empno;
+
+select * from emp where empno = 7934;
+select * from emp where empno = 7782;
+
+-- 학생테이블
+select studno,name,profno 
+from student;
+-- 지도교수테이블
+select * from professor;
+-- 학번,학생이름,지도교수이름
+-- 지도교수가 배정되지 않은 5명의 학생은 누락됨
+select studno 학번,s.name 학생이름,p.name 지도교수이름
+from student s, professor p
+where s.profno=p.profno; -- 내부조인(inner join), 동등조인
+
+-- ANSI SQL
+select studno 학번, s.name 학생이름, p.name 지도교수이름
+from student s inner join professor p -- inner join에 join도 가능
+ on s.profno = p.profno; -- where대신on을 씀
+
+-- 지도교수가 배정되지 않은 5명의 학생도 출력됨
+select studno 학번,s.name 학생이름,p.name 지도교수이름
+from student s, professor p
+where s.profno=p.profno(+);-- 외부조인(outer join)
+
+-- ANSI SQL
+select studno 학번, s.name 학생이름, p.name 지도교수이름
+from professor p  right outer join  student s 
+ on s.profno = p.profno;
+ 
+-- 부서번호, 부서명, 이름, 급여
+select d.deptno, dname, ename, sal -- 출력할 필드 목록
+from dept d, emp e -- 조인할 테이블 목록
+where d.deptno = e.deptno;
+
+-- 직급이 사원인 사원들의 이름, 부서번호, 부서이름
+select ename, d.deptno, dname, ename
+from dept d, emp e
+where d.deptno = e.deptno -- 조인 조건
+and job ='사원'; --일반적인 조건
+
+-- 이름이 황인태인 사원의 부서명
+select ename, dname
+from dept d, emp e
+where d.deptno = e.deptno and ename = '황인태';
+
+-- 박진성의 매니저는 임채호이다.
+select e.ename || '의 매니저는' || m.ename || '이다'
+from emp e, emp m
+where e.mgr=m.empno;
