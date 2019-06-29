@@ -1,0 +1,66 @@
+﻿-- 저장 프로시저 실습 예제
+-- 가) 급여 인상 저장 프로시저 실습
+-- create or replace procedure 프로시저이름(매개변수)
+-- 입력매개변수 : 변수명 in 자료형
+-- 출력매개변수 : 변수명 out 자료형
+create or replace procedure update_sal(v_empno in number)
+is
+begin
+    -- 모든 sql + 제어문(if,loop,for)
+    update emp
+    set sal = sal*1.1
+    where empno = v_empno;
+    end;
+    /
+    -- 저장 프로시저의 실행 방법
+    -- execute 저장프로시저이름(입력값)
+    select * from emp;
+    execute update_sal(7369);
+    
+create table memo (
+idx number primary key,
+writer varchar2(50) not null,
+memo varchar2(500) not null,
+post_date date default sysdate
+);    
+
+-- 1부터 시작, 1씩 증가, 무제한 증가
+create sequence memo_seq
+start with 1
+increment by 1
+nomaxvalue;
+
+-- 시퀀스 ,nextval => 다음 번호 계산
+-- 시퀀스 ,currval => 현재 번호 계산
+
+insert into memo (idx,writer,memo) values
+(memo_seq.nextval,'kim','메모1');
+insert into memo (idx,writer,memo) values
+(memo_seq.nextval,'park','메모2');
+
+select * from memo;
+
+create or replace procedure memo_insert
+( v_writer in varchar, v_memo in varchar)
+is 
+begin 
+    insert into memo(idx,writer,memo)
+    values( memo_seq.nextval, v_writer, v_memo);
+    end;
+    /
+    
+execute memo_insert('김철수','메모....'); 
+-- 메모 수정을 위한 저장프로시저 작성
+create or replace procedure memo_update
+(v_writer in varchar, v_memo in varchar, v_idx in number)
+is
+begin
+    update memo set writer=v_writer, memo=v_memo where idx=v_idx;
+end;
+/
+-- 저장 프로시저 호출
+call memo_update('박민호','memo_수정',2); 
+
+select * from memo;
+
+commit;
