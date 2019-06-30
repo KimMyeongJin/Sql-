@@ -1,0 +1,138 @@
+﻿-- 저장프로시저 함수 예제
+-- 함수 선언
+create or replace function fn_update_sal(v_empno number)
+return number -- 리턴 자료형
+is
+    v_sal number; -- 지역변수
+begin   
+    --update emp set sal=sal*1.1 where empno = v_empno;
+    --select sal*1.1 into v_sal from emp -- 10% 인상금액을 v_sal에 저장
+    select sal into v_sal from emp
+    where empno=v_empno;
+    return v_sal; --인상된 금액을 리턴
+    end;
+    /
+--에러 발생(DML 명령어를 사용할 수 없음, insert/update/delete)    
+--7369번 사원의 급여
+select * from emp where empno=7369;
+--10% 인상된 급여, dual (가상테이블)
+select fn_update_sal(7369) from dual;
+
+-- salary 변수에 저장된 값을 출력
+-- A := B => B의 값을 A에 대입
+-- :변수 => 바인딩변수(리턴 값을 받는 변수)
+-- 이 명령어는 Toad ,Sql Developer 에서 실행되지 않음. 
+-- 콘솔에서만 실행가능
+    var salary number;
+    execute : salary := fn_update_sal(7369);
+    print salary;
+
+-- if 문
+-- 형식
+-- if 조건 then
+-- elsif 조건 then
+-- else
+-- end;
+
+-- if문 예제
+    create or replace procedure dept_search(p_empno in number)
+    is v_deptno number;
+    begin
+        select deptno into v_deptno from emp
+        where empno = p_empno;
+        DBMS_OUTPUT.PUT_LINE('부서코드:'||v_deptno);
+        if v_deptno = 10 then -- := 대입 = 비교
+            dbms_output.put_line('경리팀 사원입니다');
+        elsif v_deptno = 20 then
+            dbms_output.put_line('연구팀 사원입니다');
+        elsif v_deptno = 30 then
+            dbms_output.put_line('총무팀 사원입니다');
+        else
+            dbms_output.put_line('기타부서 사원입니다');
+        end if;
+        end;
+        /
+        
+        select * from dept;
+        
+        set serveroutput on
+        execute dept_search(7499);
+        
+        select * from emp;
+
+-- Loop 문
+-- EXIT : 무조건 LOOP 문 종료
+-- EXIT WHEN : LOOP 를 빠져 나가는 조건을 제어
+
+-- loop
+    -- 반복할 문장들
+    -- exit[when 조건문]
+-- end loop;
+
+-- loop 문 예제
+
+delete from emp where empno>=9010;
+declare -- 선언부
+    v_cnt number := 9010;
+begin
+    loop -- 반복 실행되는 코드
+        v_cnt := v_cnt+1;
+        insert into emp (empno,ename,hiredate) values
+        (v_cnt, 'test'||v_cnt, sysdate);
+        exit when v_cnt >=9100; -- 탈출조건
+    end loop;
+    dbms_output.put_line(v_cnt - 9010 || '개의 레코드가 입력되었습니다.');
+end;
+/
+
+select * from emp where empno >=9050;
+
+delete from emp where empno>=9050;
+
+-- WHILE LOOP 문
+-- FOR 문과 비슷하며 조건이 TRUE일 경우만 반복되는 LOOP
+-- 예제
+-- dbms_output.put_line 함수가 작동되도록 처리
+set serveroutput on
+declare   --변수 선언부
+    cnt number := 9050;
+begin -- 실행부
+    while cnt < 9060 loop --조건이 true일동안 반복
+     insert into emp (empno,ename,hiredate) values
+     (cnt, 'test', sysdate);
+     cnt := cnt + 1; -- 조건값 변경
+     end loop;
+     dbms_output.put_line(cnt-9050 || '개의 레코드가 입력되었습니다.');
+end;
+/
+
+-- 트리거
+-- create[or replace] trigger 트리거이름
+-- before/after
+-- 트리거이벤트 on 테이블이름
+-- [for each row]
+-- [when 조건문]
+-- 실행할 명령어들
+
+-- create or replace trigger 트리거이름
+-- 사원 테이블의 레코드가 추가,수정,삭제된 후 자동 호출되는 트리거
+    create or replace trigger sum_trigger
+    after 
+        insert or update or delete on emp
+    declare
+        avg_sal number;
+    begin
+        select avg(sal) into avg_sal from emp;
+        dbms_output.put_line('급여평균:'||avg_sal);
+    end;
+    /
+
+    set serveroutput on;
+    -- 평균 급여 계산
+    select avg(sal) from emp;
+    insert into emp (empno,ename,hiredate,sal) values
+    (3002,'박철수',sysdate,500);
+    update emp set sal=600 where empno = 3002;
+    delete from emp where empno=3002;
+    
+    commit;
