@@ -1,0 +1,31 @@
+﻿백업 및 복원
+
+기본툴(exp,imp)을 이용한 백원/복원 방법
+오라클 서버의 실행파일 디렉토리로 이동 (oracle 11g XE의 경우)
+C:\oraclexe\app\oracle\product\11.2.0\server\bin\
+백업전 emp3 테이블을 삭제한 후 진행 (emp3 테이블)
+
+1)exp.exe 를 이용한 백업 방법
+형식) exp userid = 계정명/패스워드 file=백업파일이름
+
+cmd> cd C:\oraclexe\app\oracle\product\11.2.0\server\bin\
+cmd> exp userid= hr/hr file= d:/test.bak
+
+2)imp.exe를 이용한 복원 방법
+형식) imp 계정명/패스워드 file=백업파일이름
+full=y 풀옵션 복원, ignore=y 에러메시지 무시
+
+1. 백업을 위한 디렉토리 생성(d:\ora_backup)
+
+2. 백업을 위한 batch file 작성(d:\ora+backup\exp_daily.bat)
+주의 : exp 명령어는 두줄이 아닌 한줄로 작성해야 함
+
+@echo off
+SET ORACLC_SID=xe
+for %%a in (%data%) do SET day=%%a
+md D:\ORA_BACKUP\%day%
+C:\oraclexe\app\oracle\product\11.2.0\server\bin\exp hr/hr
+file=D:\ORA_BACKUP\%DAY%\%DAY%-full.dmp
+
+3. 윈도우 작업스케줄로 등록(cmd에서 실행, 관리자 권한으로 실행해야 함, Windows 10에서는
+cmd에서 실행할 수 없ㅎ으므로 작업 스케줄러 윈도우 응용프로그램으로 실행함)
